@@ -7,12 +7,19 @@ import com.leaderboard.lead.DTO.ScoreRequestDTO;
 import com.leaderboard.lead.DTO.User;
 import com.leaderboard.lead.Service.LeaderBoardService;
 
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Refill;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.time.Duration;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -24,11 +31,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class LeaderBoardContoller {
 
     private final LeaderBoardService leaderBoardService;
-    @PostMapping("/score")
-    public String addScore(@RequestBody ScoreRequestDTO entity) {
+    private Bucket bucket;
+    
+    @PostConstruct
+    public void init() {
+        Bandwidth bandwidth = Bandwidth.classic(2, Refill.intervally(2, Duration.ofMinutes(1)));
+        this.bucket = Bucket.builder()
+                        .addLimit(bandwidth)
+                        .build();
+    }
+
+    @PostMapping("/v1/score")
+    public ResponseEntity<String> addScore(@RequestBody ScoreRequestDTO entity) {
         //TODO: process POST request
         
-        return leaderBoardService.addData(entity);
+        if(bucket.tryConsume(1)) {
+            return ResponseEntity.ok(leaderBoardService.addData(entity));
+        }
+         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("to MANY REQUEST");
     }
 
     @GetMapping("/leaderBoard")
