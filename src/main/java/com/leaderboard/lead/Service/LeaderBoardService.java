@@ -14,7 +14,7 @@ import com.leaderboard.lead.DTO.User;
 @Service
 public class LeaderBoardService {
 
-    private HashMap<String,Integer> map;
+    private HashMap<String,User> map;
     private PriorityQueue<User> priorityQueue;
     private TreeSet<User> treeSet;
     private Integer K;
@@ -34,30 +34,30 @@ public class LeaderBoardService {
         this.K = K;
     }
 
-    public String addData(ScoreRequestDTO requestDTO) {
-        map.put(requestDTO.getUserId(), map.getOrDefault(requestDTO.getUserId(), 0) + requestDTO.getScore());
-        
-        User user = User.builder()
-                        .score(map.get(requestDTO.getUserId()))
-                        .userId(requestDTO.getUserId()).build();
+   public String addData(ScoreRequestDTO scoreRequestDTO ) {
+        // the poins i if user is in them amap then 
+        if(map.containsKey(scoreRequestDTO.getUserId())) {
+            User existingUser = map.get(scoreRequestDTO.getUserId());
+            priorityQueue.remove(existingUser);
 
-        
-            treeSet.remove(user);
-         
-        if(treeSet.size() < K ) {
-            treeSet.add(user);
-        }
+            existingUser.setScore(existingUser.getScore() + scoreRequestDTO.getScore());
+            priorityQueue.add(existingUser);
+            map.put(existingUser.getUserId(), existingUser);
+        }   
         else {
-            if(treeSet.getLast().getScore() < user.getScore()) {
-                treeSet.pollLast();
-                treeSet.add(user);
-            } 
+            User user = User.builder().score(scoreRequestDTO.getScore()).userId(scoreRequestDTO.getUserId()).build();
+            map.put(user.getUserId() , user);
+            priorityQueue.add(user); 
         }
 
-        return requestDTO.toString();
-    }
+        if(priorityQueue.size() > K ) {
+            priorityQueue.poll();
+        }
 
+        return map.get(scoreRequestDTO.getUserId()).toString();
+        
+   }
     public List<User> getTopK() {
-        return new ArrayList<>(treeSet);
+        return new ArrayList<>(priorityQueue); // it does not means that it is soresre
     } 
 }
