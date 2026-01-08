@@ -3,6 +3,7 @@ package com.leaderboard.lead.Controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.leaderboard.lead.Config.BuckerPerUserHashMap;
 import com.leaderboard.lead.DTO.ScoreRequestDTO;
 import com.leaderboard.lead.DTO.User;
 import com.leaderboard.lead.Service.LeaderBoardService;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class LeaderBoardContoller {
 
     private final LeaderBoardService leaderBoardService;
+    private final BuckerPerUserHashMap buckerPerUserHashMap;
     private Bucket bucket;
     
     @PostConstruct
@@ -46,6 +48,16 @@ public class LeaderBoardContoller {
         //TODO: process POST request
         
         if(bucket.tryConsume(1)) {
+            return ResponseEntity.ok(leaderBoardService.addData(entity));
+        }
+         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("to MANY REQUEST");
+    }
+
+    @PostMapping("/v2/score")
+    public ResponseEntity<String> addScoreV2(@RequestBody ScoreRequestDTO entity) {
+        //TODO: process POST request
+        
+        if(buckerPerUserHashMap.isAllowed(entity.getUserId())) {
             return ResponseEntity.ok(leaderBoardService.addData(entity));
         }
          return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("to MANY REQUEST");
