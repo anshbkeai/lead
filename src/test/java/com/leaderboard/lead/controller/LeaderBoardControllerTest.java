@@ -17,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.leaderboard.lead.Config.BuckerPerUserHashMap;
+import com.leaderboard.lead.Config.BucketPerUserCache;
 import com.leaderboard.lead.Controllers.LeaderBoardContoller;
 import com.leaderboard.lead.DTO.ScoreRequestDTO;
 import com.leaderboard.lead.DTO.User;
@@ -40,6 +41,8 @@ public class LeaderBoardControllerTest {
    @MockitoBean
    private BuckerPerUserHashMap buckerPerUserHashMap;
 
+   @MockitoBean
+   private BucketPerUserCache bucketPerUserCache;
    private Bucket bucket;
 
     private User user;
@@ -66,6 +69,18 @@ public class LeaderBoardControllerTest {
     void testAddWhenBucketFull() throws Exception {
         when(buckerPerUserHashMap.isAllowed(scoreRequestDTO.getUserId())).thenReturn(false);
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v2/score")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"userId\":\"user-123\",\"score\":50}"))
+                        .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isTooManyRequests())
+                        .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string("to MANY REQUEST"));
+                        
+        
+
+    }
+    @Test
+    void testAddWhenBucketCache() throws Exception {
+        when(bucketPerUserCache.isAllowed(scoreRequestDTO.getUserId())).thenReturn(false);
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v3/score")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"userId\":\"user-123\",\"score\":50}"))
                         .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isTooManyRequests())
