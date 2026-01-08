@@ -55,6 +55,12 @@ public class LeaderBoardContoller {
         }
          return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("to MANY REQUEST");
     }
+    @PostMapping("/score")
+    public ResponseEntity<String> addScoreInceptor(@RequestBody ScoreRequestDTO entity) {
+        //TODO: process POST request
+
+            return ResponseEntity.ok(leaderBoardService.addData(entity));
+    }
 
     @PostMapping("/v2/score")
     public ResponseEntity<String> addScoreV2(@RequestBody ScoreRequestDTO entity) {

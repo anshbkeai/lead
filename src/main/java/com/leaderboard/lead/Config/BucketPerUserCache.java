@@ -30,7 +30,7 @@ public class BucketPerUserCache {
     public Bucket newBucket(String userid) {
         log.info("Creating  the Bucket for the User id using the CaCHE {}" , userid);
         Bucket bucket = Bucket.builder()
-                            .addLimit(Bandwidth.classic(2, Refill.intervally(2, Duration.ofMinutes(2))))
+                            .addLimit(Bandwidth.classic(2, Refill.intervally(2, Duration.ofSeconds(10))))
                             .build();
         return bucket;
     }

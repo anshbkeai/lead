@@ -10,3 +10,4 @@ for i in range(1000):
         "score":random.randint(10 ,10000)
     }
     resp = client.post("http://localhost:8080/api/score" , json=(data))
+    print(resp.status_code)
